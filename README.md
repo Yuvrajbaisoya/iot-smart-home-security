@@ -1,210 +1,609 @@
-# Securing IoT Devices in Smart Home Environments
+# 🏠 Securing IoT Devices in Smart Home Environments
 
-A research and implementation project demonstrating a security framework for Internet of Things (IoT) devices in a smart home environment.
+> A practical cybersecurity project demonstrating authentication, access control, encryption, firmware integrity verification, MQTT communication, and security monitoring in a simulated smart home environment.
 
-## Project Overview
+![Python](https://img.shields.io/badge/Python-3.x-blue.svg)
+![MQTT](https://img.shields.io/badge/Protocol-MQTT-green.svg)
+![Security](https://img.shields.io/badge/Focus-IoT%20Security-red.svg)
+![License](https://img.shields.io/badge/Project-Educational-orange.svg)
 
-This project simulates multiple smart home IoT devices and demonstrates several important security concepts.
+---
 
-The simulated devices include:
+## 📌 Overview
 
-- Temperature Sensor
-- Smart Camera
-- Smart Lock
+The Internet of Things (IoT) has become an important part of modern smart homes. Devices such as temperature sensors, security cameras, and smart locks constantly communicate across networks.
 
-The devices communicate through an MQTT broker. A secure subscriber receives device messages, logs activity, and stores received data in encrypted form.
+However, insecure communication, weak authentication, unauthorized devices, and firmware tampering can introduce serious security risks.
 
-## Security Features
+This project demonstrates a simplified **IoT security framework** designed around multiple security layers.
 
-### Device Authentication
+The simulated smart home environment includes:
+
+* 🌡️ Temperature Sensor
+* 📷 Smart Camera
+* 🔐 Smart Lock
+
+The devices communicate using the **MQTT protocol**, while a secure subscriber processes incoming messages, logs activity, encrypts stored data, and supports basic security monitoring.
+
+---
+
+# 🏗️ Project Architecture
+
+```text
+                         ┌─────────────────────┐
+                         │   IoT Smart Devices │
+                         │                     │
+                         │  🌡️ Sensor          │
+                         │  📷 Camera          │
+                         │  🔐 Smart Lock      │
+                         └──────────┬──────────┘
+                                    │
+                                    │ MQTT Communication
+                                    ▼
+                         ┌─────────────────────┐
+                         │    MQTT Broker     │
+                         │     Mosquitto      │
+                         └──────────┬──────────┘
+                                    │
+                                    ▼
+                         ┌─────────────────────┐
+                         │  Secure Subscriber │
+                         └──────────┬──────────┘
+                                    │
+              ┌─────────────────────┼─────────────────────┐
+              │                     │                     │
+              ▼                     ▼                     ▼
+      ┌───────────────┐    ┌─────────────────┐   ┌─────────────────┐
+      │ Activity Logs │    │ Encrypted Data  │   │ Security Monitor│
+      └───────────────┘    └─────────────────┘   └─────────────────┘
+                                                          │
+                                                          ▼
+                                               🚨 Unknown Device Alert
+```
+
+---
+
+# 🔐 Security Features
+
+## 1️⃣ Device Authentication
 
 Registered IoT devices are validated using device credentials.
 
-### Role-Based Access Control
-
-The project implements RBAC with the following roles:
-
-- Admin
-- Owner
-- Guest
-
-Permissions are restricted according to the assigned role.
-
-### Data Encryption
-
-Device data is encrypted before being stored.
-
-### Firmware Integrity Verification
-
-Firmware integrity is verified using SHA-256 hashing.
-
-If the firmware file is modified after its reference hash is generated, the verification process detects the change.
-
-### Activity Monitoring
-
-The monitoring module checks device activity logs and alerts when activity does not match known devices.
-
-### MQTT Communication
-
-Simulated IoT devices communicate using MQTT topics.
-
-## Project Architecture
+Example registered devices:
 
 ```text
-IoT Devices
-    |
-    | MQTT Communication
-    v
-MQTT Broker
-    |
-    v
-Secure Subscriber
-    |
-    +--> Activity Logs
-    |
-    +--> Encrypted Data Storage
-    |
-    +--> Security Monitoring
+sensor_001
+camera_001
+lock_001
 ```
 
-## Project Structure
+The authentication module verifies:
+
+* Device ID
+* Username
+* Password
+
+Unauthorized credentials are rejected.
+
+---
+
+## 2️⃣ Role-Based Access Control (RBAC)
+
+The project implements a basic RBAC system to control device permissions.
+
+| Role  | Permissions                                             |
+| ----- | ------------------------------------------------------- |
+| Admin | View camera, control lock, view sensors, manage devices |
+| Owner | View camera, control lock, view sensors                 |
+| Guest | View sensors only                                       |
+
+Example:
+
+```python
+check_permission("admin", "manage_devices")
+```
+
+Expected result:
 
 ```text
-iot-smart-home-security/
+True
+```
 
+Unauthorized actions return:
+
+```text
+False
+```
+
+---
+
+## 3️⃣ Data Encryption
+
+Incoming MQTT device messages are encrypted before being stored.
+
+The project uses:
+
+```text
+Fernet Symmetric Encryption
+```
+
+Flow:
+
+```text
+IoT Device Data
+       │
+       ▼
+ MQTT Message
+       │
+       ▼
+Secure Subscriber
+       │
+       ▼
+Encryption Layer
+       │
+       ▼
+Encrypted Storage
+```
+
+The encrypted data is stored in:
+
+```text
+data/encrypted_data.txt
+```
+
+---
+
+## 4️⃣ Firmware Integrity Verification
+
+Firmware integrity is checked using the SHA-256 hashing algorithm.
+
+### Generate Firmware Hash
+
+```bash
+python security/firmware_security.py
+```
+
+Select:
+
+```text
+1
+```
+
+Example output:
+
+```text
+Firmware integrity hash created:
+963bafaf568f3ee5e6b92814499e8889982d75100069d1d7e9aa68d15ed17ec3
+```
+
+### Verify Firmware
+
+Run again:
+
+```bash
+python security/firmware_security.py
+```
+
+Select:
+
+```text
+2
+```
+
+Expected result:
+
+```text
+Firmware VERIFIED
+Integrity check passed.
+```
+
+If the firmware file is modified after the reference hash is generated:
+
+```text
+WARNING: Firmware MODIFIED!
+Installation BLOCKED.
+```
+
+---
+
+## 5️⃣ Security Monitoring
+
+The monitoring module continuously checks device activity logs.
+
+Known devices include:
+
+```text
+sensor_001
+camera_001
+lock_001
+```
+
+If activity is detected from an unknown device, the system generates an alert.
+
+Example:
+
+```text
+ALERT: Unknown Device Activity!
+
+Topic=smarthome/unknown
+Payload={
+    "device_id": "hacker_device_999",
+    "type": "unknown_sensor",
+    "status": "active"
+}
+```
+
+This demonstrates basic detection of unauthorized IoT devices.
+
+---
+
+# 📂 Project Structure
+
+```text
+iot-smart-home-security
+│
+├── architecture/
+│   └── security_architecture.md
+│
 ├── devices/
 │   ├── sensor.py
 │   ├── camera.py
 │   └── smart_lock.py
 │
-├── security/
-│   ├── auth.py
-│   ├── rbac.py
-│   ├── encryption.py
-│   └── firmware_security.py
-│
-├── server/
-│   └── subscriber.py
+├── firmware/
+│   ├── firmware_v1.txt
+│   └── firmware_hash.txt
 │
 ├── monitoring/
 │   └── monitor.py
 │
-├── firmware/
-│   └── firmware_v1.txt
+├── security/
+│   ├── auth.py
+│   ├── encryption.py
+│   ├── firmware_security.py
+│   └── rbac.py
+│
+├── server/
+│   └── subscriber.py
 │
 ├── tests/
 │   └── test_security.py
 │
-├── architecture/
-│   └── security_architecture.md
-│
 ├── data/
+│   └── encrypted_data.txt
+│
 ├── logs/
+│   └── activity.log
+│
 ├── requirements.txt
+├── setup_project.sh
+├── .gitignore
 └── README.md
 ```
 
-## Installation
+---
 
-Install Python dependencies:
+# ⚙️ Installation
+
+## 1. Clone the Repository
 
 ```bash
-pip3 install -r requirements.txt
+git clone https://github.com/Yuvrajbaisoya/iot-smart-home-security.git
 ```
 
-Install Mosquitto MQTT broker:
+```bash
+cd iot-smart-home-security
+```
+
+---
+
+## 2. Create a Virtual Environment
+
+On Kali Linux or other systems using an externally managed Python environment:
+
+```bash
+python3 -m venv venv
+```
+
+Activate it:
+
+```bash
+source venv/bin/activate
+```
+
+---
+
+## 3. Install Dependencies
+
+```bash
+pip install -r requirements.txt
+```
+
+Verify the installation:
+
+```bash
+python -c "import paho.mqtt.client; from cryptography.fernet import Fernet; print('Dependencies OK')"
+```
+
+Expected output:
+
+```text
+Dependencies OK
+```
+
+---
+
+# 📡 MQTT Broker Setup
+
+Install Mosquitto:
 
 ```bash
 sudo apt install mosquitto mosquitto-clients -y
 ```
 
-Start the MQTT broker:
+Enable and start the service:
 
 ```bash
-sudo systemctl start mosquitto
+sudo systemctl enable --now mosquitto
 ```
 
-## Running Security Tests
+Check its status:
 
 ```bash
-python3 tests/test_security.py
+sudo systemctl status mosquitto --no-pager
 ```
 
-Expected results:
+The broker should display:
 
 ```text
+Active: active (running)
+```
+
+---
+
+# 🚀 Running the Project
+
+Open multiple terminal windows.
+
+Make sure the virtual environment is activated:
+
+```bash
+cd ~/iot-smart-home-security
+source venv/bin/activate
+```
+
+---
+
+## Terminal 1 — Start Secure Subscriber
+
+```bash
+python server/subscriber.py
+```
+
+Expected output:
+
+```text
+Connecting to MQTT Broker...
+Connected to MQTT Broker
+```
+
+---
+
+## Terminal 2 — Start Temperature Sensor
+
+```bash
+python devices/sensor.py
+```
+
+Example:
+
+```text
+Sensor simulator started...
+
+Sensor Data Sent:
+{
+    "device_id": "sensor_001",
+    "type": "temperature_sensor",
+    "temperature": 30,
+    "humidity": 70
+}
+```
+
+---
+
+## Terminal 3 — Start Smart Camera
+
+```bash
+python devices/camera.py
+```
+
+Example:
+
+```text
+Camera simulator started...
+
+Camera Data Sent:
+{
+    "device_id": "camera_001",
+    "type": "smart_camera",
+    "motion": "detected",
+    "status": "online"
+}
+```
+
+---
+
+## Terminal 4 — Start Smart Lock
+
+```bash
+python devices/smart_lock.py
+```
+
+Example:
+
+```text
+Smart Lock simulator started...
+
+Lock Status Sent:
+{
+    "device_id": "lock_001",
+    "type": "smart_lock",
+    "status": "LOCKED"
+}
+```
+
+---
+
+## Terminal 5 — Start Security Monitoring
+
+```bash
+python monitoring/monitor.py
+```
+
+Expected:
+
+```text
+IoT Security Monitoring Started...
+```
+
+---
+
+# 🧪 Security Tests
+
+Run:
+
+```bash
+python tests/test_security.py
+```
+
+Example output:
+
+```text
+Running IoT Security Tests...
+
 Valid authentication: True
 Invalid authentication: False
+
 Admin can manage devices: True
 Guest can control lock: False
 ```
 
-## Running Firmware Integrity Verification
+---
+
+# 🧪 Testing Unknown Device Detection
+
+Publish a simulated unauthorized device message:
 
 ```bash
-python3 security/firmware_security.py
+mosquitto_pub \
+-h localhost \
+-t smarthome/unknown \
+-m '{"device_id":"hacker_device_999","type":"unknown_sensor","status":"active"}'
 ```
 
-Choose option `1` to generate the firmware integrity hash.
+The monitoring system should detect it:
 
-Run the program again and choose option `2` to verify the firmware.
+```text
+ALERT: Unknown Device Activity!
 
-## Running the Project
-
-Start the secure subscriber:
-
-```bash
-python3 server/subscriber.py
+Topic=smarthome/unknown
+Payload={"device_id":"hacker_device_999","type":"unknown_sensor","status":"active"}
 ```
 
-Open separate terminals and start the simulated devices:
+---
 
-```bash
-python3 devices/sensor.py
+# 🔄 Data Flow
+
+```text
+┌──────────────┐
+│ IoT Devices  │
+└──────┬───────┘
+       │
+       │ MQTT Messages
+       ▼
+┌──────────────┐
+│ MQTT Broker  │
+└──────┬───────┘
+       │
+       ▼
+┌──────────────────┐
+│ Secure Subscriber│
+└──────┬───────────┘
+       │
+       ├──────────────► Activity Logging
+       │
+       ├──────────────► Data Encryption
+       │
+       └──────────────► Security Monitoring
 ```
 
-```bash
-python3 devices/camera.py
-```
+---
 
-```bash
-python3 devices/smart_lock.py
-```
+# 🛡️ Security Concepts Demonstrated
 
-Start the monitoring system:
+* IoT Device Simulation
+* MQTT Communication
+* Device Authentication
+* Role-Based Access Control
+* Symmetric Data Encryption
+* Firmware Integrity Verification
+* SHA-256 Hashing
+* Activity Logging
+* Unknown Device Detection
+* Basic Security Monitoring
 
-```bash
-python3 monitoring/monitor.py
-```
+---
 
-## Security Concepts Demonstrated
+# ⚠️ Security Limitations
 
-- IoT Device Simulation
-- MQTT Communication
-- Device Authentication
-- Role-Based Access Control
-- Encrypted Data Storage
-- Firmware Integrity Verification
-- Activity Logging
-- Unknown Device Detection
-- Basic Security Monitoring
+This project is designed for **educational and research purposes**.
 
-## Important Note
+The current implementation demonstrates important security concepts but should not be considered production-ready.
 
-This project is an educational and research demonstration.
+Some limitations include:
 
-The firmware integrity implementation demonstrates SHA-256 hash verification and should not be considered a complete production secure-boot or firmware code-signing system.
+* Credentials are currently stored directly in source code.
+* MQTT communication is configured locally and does not currently use TLS.
+* Firmware verification uses hash comparison rather than a full digital-signature-based secure boot system.
+* Encryption key management is simplified for demonstration.
+* Production systems should use secure credential storage and rotation.
+* Certificate-based authentication should be considered.
+* Hardware-backed key storage should be used where available.
+* Real-world monitoring should include stronger anomaly detection and alerting mechanisms.
 
-The encryption module is designed for demonstration purposes. Production systems should use proper key management, authenticated encryption, certificate-based authentication, and hardware-backed security where appropriate.
+---
 
-## Author
+# 🔮 Future Improvements
 
-Yuvraj Baisoya
+Possible improvements include:
 
-## Research Project
+* [ ] MQTT over TLS
+* [ ] Certificate-based device authentication
+* [ ] Secure password hashing
+* [ ] JWT-based authentication
+* [ ] Digital firmware signatures
+* [ ] Secure boot simulation
+* [ ] Device anomaly detection
+* [ ] Real-time security dashboard
+* [ ] Database integration
+* [ ] Docker deployment
+* [ ] REST API for device management
+* [ ] SIEM integration
 
-First Quadrant Labs
+---
 
-## Project Title
+# 👨‍💻 Author
 
-Securing Internet of Things (IoT) Devices in Smart Home Environments
+**Yuvraj Baisoya**
+
+Research Project — **First Quadrant Labs**
+
+---
+
+# 📚 Project Title
+
+> **Securing Internet of Things (IoT) Devices in Smart Home Environments**
+
+---
+
+⭐ If you found this project useful, consider giving the repository a star!
