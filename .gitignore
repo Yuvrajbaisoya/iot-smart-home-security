@@ -1,0 +1,9 @@
+__pycache__/
+*.pyc
+*.key
+*.pem
+*.crt
+*.log
+security/secret.key
+data/encrypted_data.txt
+venv/

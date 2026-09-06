@@ -1,0 +1,7 @@
+SMART HOME DEVICE FIRMWARE VERSION 1.0
+
+Modules:
+- Device Boot Sequence
+- Authentication Module
+- Sensor Management
+- Secure Communication Module
