@@ -65,8 +65,11 @@ Secure Subscriber
     +--> Encrypted Data Storage
     |
     +--> Security Monitoring
+```
+
 ## Project Structure
 
+```text
 iot-smart-home-security/
 
 ├── devices/
@@ -99,57 +102,80 @@ iot-smart-home-security/
 ├── logs/
 ├── requirements.txt
 └── README.md
+```
 
 ## Installation
 
 Install Python dependencies:
 
+```bash
 pip3 install -r requirements.txt
+```
 
 Install Mosquitto MQTT broker:
 
+```bash
 sudo apt install mosquitto mosquitto-clients -y
+```
 
 Start the MQTT broker:
 
+```bash
 sudo systemctl start mosquitto
+```
 
 ## Running Security Tests
 
+```bash
 python3 tests/test_security.py
+```
 
 Expected results:
 
+```text
 Valid authentication: True
 Invalid authentication: False
 Admin can manage devices: True
 Guest can control lock: False
+```
 
 ## Running Firmware Integrity Verification
 
+```bash
 python3 security/firmware_security.py
+```
 
-Choose option 1 to generate the firmware integrity hash.
+Choose option `1` to generate the firmware integrity hash.
 
-Run the program again and choose option 2 to verify the firmware.
+Run the program again and choose option `2` to verify the firmware.
 
 ## Running the Project
 
 Start the secure subscriber:
 
+```bash
 python3 server/subscriber.py
+```
 
 Open separate terminals and start the simulated devices:
 
+```bash
 python3 devices/sensor.py
+```
 
+```bash
 python3 devices/camera.py
+```
 
+```bash
 python3 devices/smart_lock.py
+```
 
 Start the monitoring system:
 
+```bash
 python3 monitoring/monitor.py
+```
 
 ## Security Concepts Demonstrated
 
@@ -179,6 +205,6 @@ Yuvraj Baisoya
 
 First Quadrant Labs
 
-Project Title:
+## Project Title
 
 Securing Internet of Things (IoT) Devices in Smart Home Environments
